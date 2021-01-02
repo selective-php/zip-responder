@@ -18,8 +18,8 @@ A ZIP responder (PSR-7).
   * [Sending a ZIP stream](#sending-a-zip-stream)
   * [Sending a ZipStream-PHP archive](#sending-a-zipstream-php-archive)
   * [Sending a ZipArchive file](#sending-a-ziparchive-file)
-  * [Sending a compressed HTTP response](#)  
-  * [Slim 4 Integration](#slim-4-integration)
+  * [Sending a compressed HTTP response](#)
+ * [Slim 4 Integration](#slim-4-integration)
     
 ## Requirements
 
@@ -36,6 +36,12 @@ There are multiple A PSR-7 StreamFactory implementations available.
 
 * [slim/psr7](https://github.com/slimphp/Slim-Psr7)
 * [nyholm/psr7](https://github.com/Nyholm/psr7)
+
+To install `slim/psr7`, run:
+
+```
+composer require slim/psr7
+```
 
 ## Usage
 
@@ -165,7 +171,7 @@ As exciting as it may appear, HTTP Compression isnâ€™t all fun and games. Hereâ€
   be a net win. Using CPU cycles for a faster user experience is well worth it, 
   given the short attention spans on the web.
 
-### Slim 4 Integration
+## Slim 4 Integration
 
 Insert a DI container definition: `StreamFactoryInterface::class`
 
