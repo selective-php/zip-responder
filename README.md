@@ -186,7 +186,7 @@ $zipFile = new ZipFile();
 // Add entry from string
 $zipFile->addFromString('test.txt', 'File content');
      
-return $responder->zipString(new Response(), $zipFile->outputAsString(), 'download.zip');
+return $zipResponder->zipString($response, $zipFile->outputAsString(), 'download.zip');
 ```
 
 ## Slim 4 Integration
