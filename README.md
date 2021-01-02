@@ -67,7 +67,7 @@ use Slim\Psr7\Response;
 return $zipResponder->zipFile(new Response(), 'source.zip', 'output.zip');
 ```
 
-In reality, you should use the Response object from the action handler:
+In reality, it makes sense to use the response object of the action handler:
 
 ```php
 return $zipResponder->zipFile($response, 'source.zip', 'output.zip');
@@ -86,8 +86,8 @@ return $zipResponder->zipStream($response, $stream, 'output.zip');
 ### Sending a ZipStream-PHP archive
 
 [ZipStream-PHP](https://github.com/maennchen/ZipStream-PHP) is a library for 
-dynamically streaming dynamic zip files from PHP without writing to the disk at 
-all on the server. You can directly send it to the user, which is much faster.
+streaming dynamic ZIP files without writing to the disk.
+You can send the file directly to the user, which is much faster and improves testability.
 
 **Installation:**
 
@@ -103,9 +103,11 @@ use ZipStream\ZipStream;
 
 // ...
 
+// Create ZIP file, only in-memory
 $archive = new Archive();
 $archive->setOutputStream(fopen('php://memory', 'r+'));
 
+// Add files to ZIP file
 $zip = new ZipStream(null, $archive);
 $zip->addFile('test.txt', 'my file content');
 $zip->finish();
@@ -125,13 +127,16 @@ For this purpose, you can create a temporary file, or you can use an existing fi
 use ZipArchive;
 // ...
 
+// Create temporary filename
 $filename = tempnam(sys_get_temp_dir(), 'zip');
 
+// Add files to temporary ZIP file
 $zip = new ZipArchive();
 $zip->open($filename, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 $zip->addFromString('test.txt', 'my content');
 $zip->close();
 
+// Render ZIP file into the response as stream
 return $zipResponder->zipStream($response, fopen($filename, 'r+'), 'download.zip');
 ```
 
@@ -147,9 +152,9 @@ return $zipResponder->deflateResponse($response);
 
 To make sure you’re actually serving up compressed content you can:
 
-In your browser: In Chrome or Firefox, open the Developer Tools (F12) > Network Tab. 
-Refresh your page, and click the network line for the page itself. 
-The header `Content-encoding: deflate` means the contents were sent compressed.
+In your browser: In Chrome or Firefox, open the Developer Toolbar (F12) > Network tab. 
+Refresh the page, and click the network line for the page itself. 
+The header `Content-encoding: deflate` means that the content was sent compressed.
 
 Use the [online gzip test](http://www.gidnetwork.com/tools/gzip-test.php) to check whether your page is compressed.
 
@@ -160,7 +165,7 @@ As exciting as it may appear, HTTP Compression isn’t all fun and games. Here�
 * Older browsers: Yes, some browsers still may have trouble with compressed content 
   (they say they can accept it, but really they can’t). 
   If your site absolutely must work with very old browsers, you may not want to 
-  use HTTP Compression.
+  use HTTP compression.
 
 * Already-compressed content: Most images, music and videos are already compressed. 
   Don’t waste time compressing them again. In fact, you probably only need to compress 
@@ -172,6 +177,24 @@ As exciting as it may appear, HTTP Compression isn’t all fun and games. Here�
   This requires more configuration; even if it’s not possible, compressing output may still 
   be a net win. Using CPU cycles for a faster user experience is well worth it, 
   given the short attention spans on the web.
+
+Another way to compress the HTTP content is to use the Apache `mod_deflate` module instead.
+You can restrict compression to specific MIME types if needed.
+
+```htaccess
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/shtml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+```
 
 ## Slim 4 Integration
 
