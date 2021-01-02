@@ -112,22 +112,4 @@ class ZipResponderTest extends TestCase
             unlink($filename);
         }
     }
-
-    /**
-     * Test.
-     *
-     * @return void
-     */
-    public function testZipResponse(): void
-    {
-        $response = new Response();
-        $response->getBody()->write('the html content');
-
-        $responder = $this->createZipResponder();
-        $response = $responder->deflateResponse($response);
-
-        $this->assertSame(18, $response->getBody()->getSize());
-        $this->assertSame('deflate', $response->getHeaderLine('Content-Encoding'));
-        $this->assertSame(200, $response->getStatusCode());
-    }
 }

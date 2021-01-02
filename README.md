@@ -18,7 +18,6 @@ A ZIP responder (PSR-7).
   * [Sending a ZIP stream](#sending-a-zip-stream)
   * [Sending a ZipStream-PHP archive](#sending-a-zipstream-php-archive)
   * [Sending a ZipArchive file](#sending-a-ziparchive-file)
-  * [Sending a compressed HTTP response](#)
  * [Slim 4 Integration](#slim-4-integration)
     
 ## Requirements
@@ -140,62 +139,6 @@ $zip->close();
 return $zipResponder->zipStream($response, fopen($filename, 'r+'), 'download.zip');
 ```
 
-### Sending a compressed HTTP response
-
-Compression is a simple, effective way to save bandwidth and speed up your site.
-
-```php
-return $zipResponder->deflateResponse($response);
-```
-
-**Verify Your Compression**
-
-To make sure you’re actually serving up compressed content you can:
-
-In your browser: In Chrome or Firefox, open the Developer Toolbar (F12) > Network tab. 
-Refresh the page, and click the network line for the page itself. 
-The header `Content-encoding: deflate` means that the content was sent compressed.
-
-Use the [online gzip test](http://www.gidnetwork.com/tools/gzip-test.php) to check whether your page is compressed.
-
-**Caveats**
-
-As exciting as it may appear, HTTP Compression isn’t all fun and games. Here’s what to watch out for:
-
-* Older browsers: Yes, some browsers still may have trouble with compressed content 
-  (they say they can accept it, but really they can’t). 
-  If your site absolutely must work with very old browsers, you may not want to 
-  use HTTP compression.
-
-* Already-compressed content: Most images, music and videos are already compressed. 
-  Don’t waste time compressing them again. In fact, you probably only need to compress 
-  HTML, CSS and Javascript.
-
-* CPU-load: Compressing content on-the-fly uses CPU time and saves bandwidth. 
-  Usually this is a great tradeoff given the speed of compression. 
-  There are ways to pre-compress static content and send over the compressed versions. 
-  This requires more configuration; even if it’s not possible, compressing output may still 
-  be a net win. Using CPU cycles for a faster user experience is well worth it, 
-  given the short attention spans on the web.
-
-Another way to compress the HTTP content is to use the Apache `mod_deflate` module instead.
-You can restrict compression to specific MIME types if needed.
-
-```htaccess
-<IfModule mod_deflate.c>
-AddOutputFilterByType DEFLATE text/plain
-AddOutputFilterByType DEFLATE text/html
-AddOutputFilterByType DEFLATE text/xml
-AddOutputFilterByType DEFLATE text/shtml
-AddOutputFilterByType DEFLATE text/css
-AddOutputFilterByType DEFLATE application/xml
-AddOutputFilterByType DEFLATE application/xhtml+xml
-AddOutputFilterByType DEFLATE application/rss+xml
-AddOutputFilterByType DEFLATE application/javascript
-AddOutputFilterByType DEFLATE application/x-javascript
-</IfModule>
-```
-
 ## Slim 4 Integration
 
 Insert a DI container definition: `StreamFactoryInterface::class`
@@ -256,50 +199,6 @@ final class ZipDemoAction
         return $this->zipResponder->zipFile($response, $filename, 'filename.zip');
     }
 }
-```
-
-**Middleware example:**
-
-```php
-<?php
-
-namespace App\Middleware;
-
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Selective\Http\Zip\ZipResponder;
-
-final class InflateMiddleware implements MiddlewareInterface
-{
-    /**
-     * @var ZipResponder
-     */
-    private $zipResponder;
-
-    public function __construct(ZipResponder $zipResponder)
-    {
-        $this->zipResponder = $zipResponder;
-    }
-
-    public function process(
-        ServerRequestInterface $request,
-        RequestHandlerInterface $handler
-    ): ResponseInterface {
-        $response = $handler->handle($request);
-
-        // Restrict compression to specific MIME types
-        $contentType = $response->getHeaderLine('Content-Type');
-
-        if (strpos($contentType, 'text/html') !== false) {
-            return $this->zipResponder->deflateResponse($response);
-        }
-
-        return $response;
-    }
-}
-
 ```
 
 ## License
