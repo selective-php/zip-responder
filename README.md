@@ -17,7 +17,8 @@ A ZIP responder (PSR-7).
   * [Sending a ZIP file](#sending-a-zip-file)
   * [Sending a ZIP stream](#sending-a-zip-stream)
   * [Sending a ZipStream-PHP archive](#sending-a-zipstream-php-archive)
-  * [Sending a ZipArchive file](#sending-a-ziparchive-file)  
+  * [Sending a ZipArchive file](#sending-a-ziparchive-file)
+  * [Sending a compressed HTTP response](#)  
   * [Slim 4 Integration](#slim-4-integration)
     
 ## Requirements
@@ -110,7 +111,7 @@ The ZIP extension enables you to transparently read or write ZIP compressed
 archives and the files inside them.
 A [ZipArchive](https://www.php.net/manual/en/class.ziparchive.php) does not support 
 "memory mapped files", like PHP streams. You can only access local files with ZipArchive.
-For this purpose, you can create a temporary file, or you can use an existing file from your file system.
+For this purpose, you can create a temporary file, or you can use an existing file from the filesystem.
 
 ```php
 use ZipArchive;
@@ -126,9 +127,47 @@ $zip->close();
 return $zipResponder->zipStream($response, fopen($filename, 'r+'), 'download.zip');
 ```
 
+### Sending a compressed HTTP response
+
+Compression is a simple, effective way to save bandwidth and speed up your site.
+
+```php
+return $zipResponder->deflateResponse($response);
+```
+
+**Verify Your Compression**
+
+To make sure you’re actually serving up compressed content you can:
+
+In your browser: In Chrome or Firefox, open the Developer Tools (F12) > Network Tab. 
+Refresh your page, and click the network line for the page itself. 
+The header `Content-encoding: deflate` means the contents were sent compressed.
+
+Use the [online gzip test](http://www.gidnetwork.com/tools/gzip-test.php) to check whether your page is compressed.
+
+**Caveats**
+
+As exciting as it may appear, HTTP Compression isn’t all fun and games. Here’s what to watch out for:
+
+* Older browsers: Yes, some browsers still may have trouble with compressed content 
+  (they say they can accept it, but really they can’t). 
+  If your site absolutely must work with very old browsers, you may not want to 
+  use HTTP Compression.
+
+* Already-compressed content: Most images, music and videos are already compressed. 
+  Don’t waste time compressing them again. In fact, you probably only need to compress 
+  HTML, CSS and Javascript.
+
+* CPU-load: Compressing content on-the-fly uses CPU time and saves bandwidth. 
+  Usually this is a great tradeoff given the speed of compression. 
+  There are ways to pre-compress static content and send over the compressed versions. 
+  This requires more configuration; even if it’s not possible, compressing output may still 
+  be a net win. Using CPU cycles for a faster user experience is well worth it, 
+  given the short attention spans on the web.
+
 ### Slim 4 Integration
 
-Insert a DI container definition for `StreamFactoryInterface::class`:
+Insert a DI container definition: `StreamFactoryInterface::class`
 
 A `slim/psr7` example:
 
@@ -146,7 +185,7 @@ return [
 ];
 ```
 
-The responder should only be used within an action handler or a middleware.
+The responder should only be used within an action handler or middleware.
 
 **Action class example using dependency injection:**
 
@@ -172,14 +211,6 @@ final class ZipDemoAction
         $this->zipResponder = $zipResponder;
     }
 
-    /**
-     * Action.
-     *
-     * @param ServerRequestInterface $request The request
-     * @param ResponseInterface $response The response
-     *
-     * @return ResponseInterface The response
-     */
     public function __invoke(
         ServerRequestInterface $request, 
         ResponseInterface $response
