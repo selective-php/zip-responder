@@ -4,6 +4,7 @@ namespace Selective\Http\Zip;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use UnexpectedValueException;
 
 /**
  * A HTTP ZIP responder.
@@ -31,7 +32,7 @@ final class ZipResponder
      * @param ResponseInterface $response The response
      * @param string $filename The source ZIP file
      * @param string $outputName The output name
-     * @param string $disposition the content disposition: 'attachment' or 'inline'
+     * @param string $disposition The content disposition: 'attachment' or 'inline'
      *
      * @return ResponseInterface The response
      */
@@ -52,7 +53,7 @@ final class ZipResponder
      * @param ResponseInterface $response The response
      * @param resource $stream The source ZIP stream
      * @param string $outputName The output name
-     * @param string $disposition the content disposition: 'attachment' or 'inline'
+     * @param string $disposition The content disposition: 'attachment' or 'inline'
      *
      * @return ResponseInterface The response
      */
@@ -72,7 +73,7 @@ final class ZipResponder
      *
      * @param ResponseInterface $response The response
      * @param string $outputName The output ZIP filename
-     * @param string $contentDisposition the content disposition
+     * @param string $contentDisposition The content disposition
      *
      * @return ResponseInterface The response
      */
@@ -113,13 +114,25 @@ final class ZipResponder
      * @param int $level The level of compression. Can be given as 0 for no compression up to 9 for maximum compression.
      * If not given, the default compression level will be the default compression level of the zlib library.
      *
+     * @throws UnexpectedValueException
+     *
      * @return ResponseInterface The response
      */
     public function deflateResponse(ResponseInterface $response, int $level = -1): ResponseInterface
     {
         $response = $response->withHeader('Content-Encoding', 'deflate');
         $content = gzdeflate((string)$response->getBody(), $level);
+
+        if ($content === false) {
+            throw new UnexpectedValueException('The HTTP body could not be compressed.');
+        }
+
         $stream = fopen('php://memory', 'r+');
+
+        if (!$stream) {
+            throw new UnexpectedValueException('The stream could not be created.');
+        }
+
         fwrite($stream, $content);
 
         return $response->withBody($this->streamFactory->createStreamFromResource($stream));

@@ -2,9 +2,3 @@ parameters:
 	level: max
 	paths:
 		- src
-		- tests
-		- bin
-	reportUnmatchedIgnoredErrors: false
-	checkMissingIterableValueType: false
-	checkGenericClassInNonGenericObjectType: false
-	ignoreErrors:
