@@ -3,6 +3,7 @@
 namespace Selective\Http\Zip\Test;
 
 use PHPUnit\Framework\TestCase;
+use PhpZip\ZipFile;
 use Selective\Http\Zip\ZipResponder;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Psr7\Response;
@@ -79,6 +80,26 @@ class ZipResponderTest extends TestCase
         $response = $responder->zipStream(new Response(), $zipStreamArchive->getOutputStream(), 'download.zip');
 
         $this->assertSame(123, $response->getBody()->getSize());
+        $this->assertStringContainsString('test.txt', (string)$response->getBody());
+        $this->assertSame('application/zip', $response->getHeaderLine('Content-Type'));
+        $this->assertSame("attachment; filename*=UTF-8''download.zip", $response->getHeaderLine('Content-Disposition'));
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * Test.
+     *
+     * @return void
+     */
+    public function testNelexaZip(): void
+    {
+        $zipFile = new ZipFile();
+        $zipFile->addFromString('test.txt', 'File content');
+
+        $responder = $this->createZipResponder();
+        $response = $responder->zipString(new Response(), $zipFile->outputAsString(), 'download.zip');
+
+        $this->assertSame(126, $response->getBody()->getSize());
         $this->assertStringContainsString('test.txt', (string)$response->getBody());
         $this->assertSame('application/zip', $response->getHeaderLine('Content-Type'));
         $this->assertSame("attachment; filename*=UTF-8''download.zip", $response->getHeaderLine('Content-Disposition'));

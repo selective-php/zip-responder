@@ -4,6 +4,7 @@ namespace Selective\Http\Zip;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use UnexpectedValueException;
 
 /**
  * A HTTP ZIP responder.
@@ -31,7 +32,7 @@ final class ZipResponder
      * @param ResponseInterface $response The response
      * @param string $filename The source ZIP file
      * @param string $outputName The output name
-     * @param string $disposition The content disposition: 'attachment' or 'inline'
+     * @param bool $attachment The Content-Disposition header
      *
      * @return ResponseInterface The response
      */
@@ -39,11 +40,46 @@ final class ZipResponder
         ResponseInterface $response,
         string $filename,
         string $outputName,
-        string $disposition = 'attachment'
+        bool $attachment = true
     ): ResponseInterface {
-        $response = $this->withHttpHeaders($response, $outputName, $disposition);
+        $response = $this->withHttpHeaders($response, $outputName, $attachment);
 
-        return $response->withBody($this->streamFactory->createStreamFromFile($filename));
+        $response = $response->withBody($this->streamFactory->createStreamFromFile($filename));
+
+        return $this->withContentLengthHeader($response);
+    }
+
+    /**
+     * Add ZIP file to response.
+     *
+     * @param ResponseInterface $response The response
+     * @param string $content The source ZIP file content
+     * @param string $outputName The output name
+     * @param bool $attachment The Content-Disposition header
+     *
+     * @throws UnexpectedValueException
+     *
+     * @return ResponseInterface The response
+     */
+    public function zipString(
+        ResponseInterface $response,
+        string $content,
+        string $outputName,
+        bool $attachment = true
+    ): ResponseInterface {
+        $response = $this->withHttpHeaders($response, $outputName, $attachment);
+
+        $stream = fopen('php://temp', 'r+');
+
+        if (!$stream) {
+            throw new UnexpectedValueException('Stream could not be created');
+        }
+
+        fwrite($stream, $content);
+
+        $response = $response->withBody($this->streamFactory->createStreamFromResource($stream));
+
+        return $this->withContentLengthHeader($response);
     }
 
     /**
@@ -52,7 +88,7 @@ final class ZipResponder
      * @param ResponseInterface $response The response
      * @param resource $stream The source ZIP stream
      * @param string $outputName The output name
-     * @param string $disposition The content disposition: 'attachment' or 'inline'
+     * @param bool $attachment The Content-Disposition header
      *
      * @return ResponseInterface The response
      */
@@ -60,33 +96,38 @@ final class ZipResponder
         ResponseInterface $response,
         $stream,
         string $outputName,
-        string $disposition = 'attachment'
+        bool $attachment = true
     ): ResponseInterface {
-        $response = $this->withHttpHeaders($response, $outputName, $disposition);
+        $response = $this->withHttpHeaders($response, $outputName, $attachment);
 
-        return $response->withBody($this->streamFactory->createStreamFromResource($stream));
+        $psrStream = $this->streamFactory->createStreamFromResource($stream);
+        $response = $response->withBody($psrStream);
+
+        return $this->withContentLengthHeader($response);
     }
 
     /**
      * Add HTTP headers.
      *
      * @param ResponseInterface $response The response
-     * @param string $outputName The output ZIP filename
-     * @param string $contentDisposition The content disposition
+     * @param string $outputFilename The output filename
+     * @param bool $attachment The Content-Disposition Header. If true then attachment otherwise inline
      *
      * @return ResponseInterface The response
      */
     private function withHttpHeaders(
         ResponseInterface $response,
-        string $outputName,
-        string $contentDisposition
+        string $outputFilename,
+        bool $attachment
     ): ResponseInterface {
-        if ($outputName) {
+        $contentDisposition = ($attachment ? 'attachment' : 'inline');
+
+        if ($outputFilename) {
             // Various different browsers dislike various characters here. Strip them all for safety.
-            $safeOutput = trim(str_replace(['"', "'", '\\', ';', "\n", "\r"], '', $outputName));
+            $outputFilename = trim(str_replace(['"', "'", '\\', ';', "\n", "\r"], '', basename($outputFilename)));
 
             // Check if we need to UTF-8 encode the filename
-            $urlencoded = rawurlencode($safeOutput);
+            $urlencoded = rawurlencode($outputFilename);
             $contentDisposition .= "; filename*=UTF-8''{$urlencoded}";
         }
 
@@ -100,6 +141,25 @@ final class ZipResponder
 
         foreach ($headers as $key => $val) {
             $response = $response->withHeader($key, $val);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Add Content-Length header.
+     *
+     * @param ResponseInterface $response The response
+     *
+     * @return ResponseInterface The response
+     */
+    private function withContentLengthHeader(ResponseInterface $response): ResponseInterface
+    {
+        // Add Content-Length header if not already added
+        $size = $response->getBody()->getSize();
+
+        if ($size !== null && !$response->hasHeader('Content-Length')) {
+            $response = $response->withHeader('Content-Length', (string)$size);
         }
 
         return $response;

@@ -14,12 +14,14 @@ A ZIP responder (PSR-7).
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Usage](#usage)
-  * [Sending a ZIP file](#sending-a-zip-file)
-  * [Sending a ZIP stream](#sending-a-zip-stream)
-  * [Sending a ZipStream-PHP archive](#sending-a-zipstream-php-archive)
-  * [Sending a ZipArchive file](#sending-a-ziparchive-file)
- * [Slim 4 Integration](#slim-4-integration)
-    
+    * [Sending a ZIP file](#sending-a-zip-file)
+    * [Sending a ZIP file from a string](#sending-a-zip-file-from-a-string)  
+    * [Sending a ZIP stream](#sending-a-zip-stream)
+    * [Sending a ZipArchive file](#sending-a-ziparchive-file)
+    * [Sending a ZipStream-PHP archive](#sending-a-zipstream-php-archive)
+    * [Sending a PhpZip archive](#sending-a-phpzip-archive)
+* [Slim 4 Integration](#slim-4-integration)
+
 ## Requirements
 
 * PHP 7.3+ or 8.0+
@@ -72,6 +74,12 @@ In reality, it makes sense to use the response object of the action handler:
 return $zipResponder->zipFile($response, 'source.zip', 'output.zip');
 ```
 
+### Sending a ZIP file from a string
+
+```php
+return $zipResponder->zipString($response, file_get_contents('example.zip'), 'output.zip');
+```
+
 ### Sending a ZIP stream
 
 Send ZIP stream to browser, force direct download:
@@ -82,11 +90,34 @@ $stream = fopen('test.zip', 'r');
 return $zipResponder->zipStream($response, $stream, 'output.zip');
 ```
 
+### Sending a ZipArchive file
+
+The ZIP extension enables you to transparently read or write ZIP compressed archives and the files inside them.
+A [ZipArchive](https://www.php.net/manual/en/class.ziparchive.php) does not support
+"memory mapped files", like PHP streams. You can only access local files with ZipArchive. For this purpose, you can
+create a temporary file, or you can use an existing file from the filesystem.
+
+```php
+use ZipArchive;
+// ...
+
+// Create temporary filename
+$filename = tempnam(sys_get_temp_dir(), 'zip');
+
+// Add files to temporary ZIP file
+$zip = new ZipArchive();
+$zip->open($filename, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+$zip->addFromString('test.txt', 'my content');
+$zip->close();
+
+// Render ZIP file into the response as stream
+return $zipResponder->zipStream($response, fopen($filename, 'r+'), 'download.zip');
+```
+
 ### Sending a ZipStream-PHP archive
 
-[ZipStream-PHP](https://github.com/maennchen/ZipStream-PHP) is a library for 
-streaming dynamic ZIP files without writing to the disk.
-You can send the file directly to the user, which is much faster and improves testability.
+[ZipStream-PHP](https://github.com/maennchen/ZipStream-PHP) is a library for streaming dynamic ZIP files without writing
+to the disk. You can send the file directly to the user, which is much faster and improves testability.
 
 **Installation:**
 
@@ -104,7 +135,7 @@ use ZipStream\ZipStream;
 
 // Create ZIP file, only in-memory
 $archive = new Archive();
-$archive->setOutputStream(fopen('php://memory', 'r+'));
+$archive->setOutputStream(fopen('php://temp', 'r+'));
 
 // Add files to ZIP file
 $zip = new ZipStream(null, $archive);
@@ -114,29 +145,48 @@ $zip->finish();
 $response = $zipResponder->zipStream($response, $archive->getOutputStream(), 'download.zip');
 ```
 
-### Sending a ZipArchive file
+### Sending a PhpZip archive
 
-The ZIP extension enables you to transparently read or write ZIP compressed 
-archives and the files inside them.
-A [ZipArchive](https://www.php.net/manual/en/class.ziparchive.php) does not support 
-"memory mapped files", like PHP streams. You can only access local files with ZipArchive.
-For this purpose, you can create a temporary file, or you can use an existing file from the filesystem.
+[PhpZip](https://github.com/Ne-Lexa/php-zip) is a library for extended work with ZIP-archives.
+
+**Installation:**
+
+```
+composer require nelexa/zip
+```
+
+Note, when you use the `nelexa/zip` component, you may not need the `selective/zip-responder` 
+component because the `nelexa/zip` already provides its own PSR-7 response factory. 
+
+**Example**
 
 ```php
-use ZipArchive;
+use PhpZip\ZipFile;
+
 // ...
 
-// Create temporary filename
-$filename = tempnam(sys_get_temp_dir(), 'zip');
+$zipFile = new ZipFile();
+$zipFile->addFromString('test.txt', 'File content');
 
-// Add files to temporary ZIP file
-$zip = new ZipArchive();
-$zip->open($filename, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-$zip->addFromString('test.txt', 'my content');
-$zip->close();
+return $zipFile->outputAsResponse($response, 'download.zip');
+```
 
-// Render ZIP file into the response as stream
-return $zipResponder->zipStream($response, fopen($filename, 'r+'), 'download.zip');
+In case you want to keep your architecture more clean (SRP), 
+you may use the `selective/zip-responder` responder to create 
+and send a ZIP file to the browser as follows:
+
+```php
+use PhpZip\ZipFile;
+
+// ...
+
+// Create new archive
+$zipFile = new ZipFile();
+
+// Add entry from string
+$zipFile->addFromString('test.txt', 'File content');
+     
+return $responder->zipString(new Response(), $zipFile->outputAsString(), 'download.zip');
 ```
 
 ## Slim 4 Integration
