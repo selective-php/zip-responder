@@ -269,9 +269,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use ZipArchive;
+use Selective\Http\Zip\ZipResponder;
 
-final class ZipFileMiddleware implements MiddlewareInterface
+final class InflateMiddleware implements MiddlewareInterface
 {
     /**
      * @var ZipResponder
@@ -284,24 +284,22 @@ final class ZipFileMiddleware implements MiddlewareInterface
     }
 
     public function process(
-        ServerRequestInterface $request, 
+        ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ): ResponseInterface {
         $response = $handler->handle($request);
-        
-        // Custom logic
-        // ...
-        
-        $filename = tempnam(sys_get_temp_dir(), 'zip');
 
-        $zip = new ZipArchive();
-        $zip->open($filename, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-        $zip->addFromString('test.txt', 'my content');
-        $zip->close();
+        // Restrict compression to specific MIME types
+        $contentType = $response->getHeaderLine('Content-Type');
 
-        return $this->zipResponder->zipFile($response, $filename, 'filename.zip');
+        if (strpos($contentType, 'text/html') !== false) {
+            return $this->zipResponder->deflateResponse($response);
+        }
+
+        return $response;
     }
 }
+
 ```
 
 ## License
