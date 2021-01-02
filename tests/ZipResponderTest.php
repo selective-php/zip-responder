@@ -121,7 +121,7 @@ class ZipResponderTest extends TestCase
         $zip->close();
 
         $responder = $this->createZipResponder();
-        $response = $responder->zipStream(new Response(), fopen($filename, 'r+'), 'download.zip');
+        $response = $responder->zipStream(new Response(), fopen($filename, 'r'), 'download.zip');
 
         $this->assertSame(124, $response->getBody()->getSize());
         $this->assertStringContainsString('test.txt', (string)$response->getBody());

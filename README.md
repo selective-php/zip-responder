@@ -111,7 +111,7 @@ $zip->addFromString('test.txt', 'my content');
 $zip->close();
 
 // Render ZIP file into the response as stream
-return $zipResponder->zipStream($response, fopen($filename, 'r+'), 'download.zip');
+return $zipResponder->zipStream($response, fopen($filename, 'r'), 'download.zip');
 ```
 
 ### Sending a ZipStream-PHP archive
