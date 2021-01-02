@@ -32,12 +32,14 @@ A ZIP responder (PSR-7).
 composer require selective/zip-responder
 ```
 
-There are multiple A PSR-7 StreamFactory implementations available.
+There are multiple PSR-7 StreamFactory implementations available.
 
 * [slim/psr7](https://github.com/slimphp/Slim-Psr7)
 * [nyholm/psr7](https://github.com/Nyholm/psr7)
+* [guzzlehttp/psr7](https://github.com/guzzle/psr7)
+* [laminas/laminas-diactoros](https://github.com/laminas/laminas-diactoros)
 
-To install `slim/psr7`, run:
+To install the `slim/psr7` component, run:
 
 ```
 composer require slim/psr7
