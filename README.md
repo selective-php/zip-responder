@@ -156,7 +156,7 @@ composer require nelexa/zip
 ```
 
 Note, when you use the `nelexa/zip` component, you may not need the `selective/zip-responder` 
-component because the `nelexa/zip` already provides its own PSR-7 response factory. 
+component because the `nelexa/zip` already provides its own PSR-7 responder.
 
 **Example**
 
