@@ -7,7 +7,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use UnexpectedValueException;
 
 /**
- * A HTTP ZIP responder.
+ * A HTTP ZIP response provider.
  */
 final class ZipResponder
 {
@@ -36,7 +36,7 @@ final class ZipResponder
      *
      * @return ResponseInterface The response
      */
-    public function zipFile(
+    public function withZipFile(
         ResponseInterface $response,
         string $filename,
         string $outputName,
@@ -61,7 +61,7 @@ final class ZipResponder
      *
      * @return ResponseInterface The response
      */
-    public function zipString(
+    public function withZipString(
         ResponseInterface $response,
         string $content,
         string $outputName,
@@ -92,7 +92,7 @@ final class ZipResponder
      *
      * @return ResponseInterface The response
      */
-    public function zipStream(
+    public function withZipStream(
         ResponseInterface $response,
         $stream,
         string $outputName,

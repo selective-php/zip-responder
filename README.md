@@ -65,19 +65,19 @@ Send ZIP file to browser, force direct download:
 use Slim\Psr7\Response;
 // ...
 
-return $zipResponder->zipFile(new Response(), 'source.zip', 'output.zip');
+return $zipResponder->withZipFile(new Response(), 'source.zip', 'output.zip');
 ```
 
 In reality, it makes sense to use the response object of the action handler:
 
 ```php
-return $zipResponder->zipFile($response, 'source.zip', 'output.zip');
+return $zipResponder->withZipFile($response, 'source.zip', 'output.zip');
 ```
 
 ### Sending a ZIP file from a string
 
 ```php
-return $zipResponder->zipString($response, file_get_contents('example.zip'), 'output.zip');
+return $zipResponder->withZipString($response, file_get_contents('example.zip'), 'output.zip');
 ```
 
 ### Sending a ZIP stream
@@ -87,7 +87,7 @@ Send ZIP stream to browser, force direct download:
 ```php
 $stream = fopen('test.zip', 'r');
  
-return $zipResponder->zipStream($response, $stream, 'output.zip');
+return $zipResponder->withZipStream($response, $stream, 'output.zip');
 ```
 
 ### Sending a ZipArchive file
@@ -111,7 +111,7 @@ $zip->addFromString('test.txt', 'my content');
 $zip->close();
 
 // Render ZIP file into the response as stream
-return $zipResponder->zipStream($response, fopen($filename, 'r'), 'download.zip');
+return $zipResponder->withZipStream($response, fopen($filename, 'r'), 'download.zip');
 ```
 
 ### Sending a ZipStream-PHP archive
@@ -142,7 +142,7 @@ $zip = new ZipStream(null, $archive);
 $zip->addFile('test.txt', 'my file content');
 $zip->finish();
 
-$response = $zipResponder->zipStream($response, $archive->getOutputStream(), 'download.zip');
+$response = $zipResponder->withZipStream($response, $archive->getOutputStream(), 'download.zip');
 ```
 
 ### Sending a PhpZip archive
@@ -186,7 +186,7 @@ $zipFile = new ZipFile();
 // Add entry from string
 $zipFile->addFromString('test.txt', 'File content');
      
-return $zipResponder->zipString($response, $zipFile->outputAsString(), 'download.zip');
+return $zipResponder->withZipString($response, $zipFile->outputAsString(), 'download.zip');
 ```
 
 ## Slim 4 Integration
@@ -246,7 +246,7 @@ final class ZipDemoAction
         $zip->addFromString('test.txt', 'my content');
         $zip->close();
 
-        return $this->zipResponder->zipFile($response, $filename, 'filename.zip');
+        return $this->zipResponder->withZipFile($response, $filename, 'filename.zip');
     }
 }
 ```
