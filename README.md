@@ -25,7 +25,7 @@ A ZIP responder (PSR-7).
 ## Requirements
 
 * PHP 7.3+ or 8.0+
-* A PSR-7 StreamFactory implementation
+* A PSR-7 StreamFactory implementation, e.g. [nyholm/psr7](https://github.com/Nyholm/psr7)
 
 ## Installation
 
@@ -33,20 +33,16 @@ A ZIP responder (PSR-7).
 composer require selective/zip-responder
 ```
 
-There are multiple PSR-7 StreamFactory implementations available.
-
-* [slim/psr7](https://github.com/slimphp/Slim-Psr7)
-* [nyholm/psr7](https://github.com/Nyholm/psr7)
-* [guzzlehttp/psr7](https://github.com/guzzle/psr7)
-* [laminas/laminas-diactoros](https://github.com/laminas/laminas-diactoros)
-
-To install the `slim/psr7` component, run:
-
-```
-composer require slim/psr7
-```
-
 ## Usage
+
+Creating a new responder instance using the `nyholm/psr7` Psr17Factory:
+
+```php
+use Selective\Http\Zip\ZipResponder;
+use Nyholm\Psr7\Factory\Psr17Factory;
+
+$zipResponder = new ZipResponder(new Psr17Factory());
+```
 
 Creating a new responder instance using the `slim/psr7` StreamFactory:
 
