@@ -24,7 +24,7 @@ final class CallbackStream implements StreamInterface
      *
      * @var bool
      */
-    private bool $called = false;
+    private $called = false;
 
     /**
      * @param callable $callback The callback function that echos the body content
