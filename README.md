@@ -90,6 +90,23 @@ $stream = fopen('test.zip', 'r');
 return $zipResponder->withZipStream($response, $stream, 'output.zip');
 ```
 
+### Sending a ZIP stream on the fly
+
+Sending a file directly to the client is not intended according to the PSR-7 specification, 
+but can still be realized with the help of a CallbackStream.
+
+```php
+use Selective\Http\Zip\Stream\CallbackStream;
+
+$callbackStream = new CallbackStream(function () {
+    echo 'my binary zip content';
+}
+
+$response = $zipResponder->withZipHeaders($response, $outputName, true);
+
+return $response->withBody($callbackStream);
+```
+
 ### Sending a ZipArchive file
 
 The ZIP extension enables you to transparently read or write ZIP compressed archives and the files inside them.
@@ -135,7 +152,7 @@ use ZipStream\ZipStream;
 
 // Create ZIP file, only in-memory
 $archive = new Archive();
-$archive->setOutputStream(fopen('php://temp', 'r+'));
+$archive->setOutputStream(fopen('php://memory', 'r+'));
 
 // Add files to ZIP file
 $zip = new ZipStream(null, $archive);
@@ -143,6 +160,33 @@ $zip->addFile('test.txt', 'my file content');
 $zip->finish();
 
 $response = $zipResponder->withZipStream($response, $archive->getOutputStream(), 'download.zip');
+```
+
+Sending a zipstream on the fly:
+
+```php
+use Selective\Http\Zip\Stream\CallbackStream;
+use ZipStream\Option\Archive;
+use ZipStream\ZipStream;
+//...
+
+$callbackStream = new CallbackStream(function () {
+    $archive = new Archive();
+
+    // Flush ZIP file directly to output stream (php://output)
+    $archive->setFlushOutput(true);
+    $zip = new ZipStream(null, $archive);
+
+    // Add files to ZIP file and stream it directly
+    $zip->addFile('test.txt', 'my file content');
+    $zip->addFile('test2.txt', 'my file content 2');
+    $zip->addFile('test3.txt', 'my file content 4');
+    $zip->finish();
+});
+
+$response = $zipResponder->withZipHeaders($response, $outputName, true);
+
+return $response->withBody($callbackStream);
 ```
 
 ### Sending a PhpZip archive

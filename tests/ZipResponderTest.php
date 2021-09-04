@@ -2,11 +2,12 @@
 
 namespace Selective\Http\Zip\Test;
 
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use PhpZip\ZipFile;
+use Selective\Http\Zip\Stream\CallbackStream;
 use Selective\Http\Zip\ZipResponder;
-use Slim\Psr7\Factory\StreamFactory;
-use Slim\Psr7\Response;
 use ZipArchive;
 use ZipStream\Option\Archive;
 use ZipStream\ZipStream;
@@ -23,7 +24,7 @@ class ZipResponderTest extends TestCase
      */
     protected function createZipResponder(): ZipResponder
     {
-        return new ZipResponder(new StreamFactory());
+        return new ZipResponder(new Psr17Factory());
     }
 
     /**
@@ -132,5 +133,48 @@ class ZipResponderTest extends TestCase
         if (file_exists($filename)) {
             unlink($filename);
         }
+    }
+
+    /**
+     * Test.
+     *
+     * @return void
+     */
+    public function testZipArchiveCallbackStream(): void
+    {
+        $this->expectOutputRegex('/test\.txt/');
+
+        $callbackStream = new CallbackStream(function () {
+            $archive = new Archive();
+
+            // Only for testing. Should be true in production.
+            $archive->setFlushOutput(false);
+            $zip = new ZipStream(null, $archive);
+
+            // Add files to ZIP file and stream it directly
+            $zip->addFile('test.txt', 'my file content');
+            $zip->addFile('test2.txt', 'my file content 2');
+            $zip->addFile('test3.txt', 'my file content 4');
+            $zip->finish();
+        });
+
+        $responder = $this->createZipResponder();
+        $response = $responder->withZipHeaders(new Response(), 'download.zip', true);
+        $response = $response->withBody($callbackStream);
+
+        $this->assertSame(null, $response->getBody()->getSize());
+        $this->assertSame('application/zip', $response->getHeaderLine('Content-Type'));
+        $this->assertSame("attachment; filename*=UTF-8''download.zip", $response->getHeaderLine('Content-Disposition'));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('', (string)$response->getBody());
+
+        // The read method triggers the callback function
+        $this->assertSame('', $response->getBody()->read(4096));
+
+        $content = (string)ob_get_contents();
+        $this->assertStringStartsWith('PK', $content);
+        $this->assertSame(2, substr_count($content, 'test.txt'));
+        $this->assertSame(2, substr_count($content, 'test2.txt'));
+        $this->assertSame(2, substr_count($content, 'test3.txt'));
     }
 }

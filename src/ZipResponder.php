@@ -42,7 +42,7 @@ final class ZipResponder
         string $outputName,
         bool $attachment = true
     ): ResponseInterface {
-        $response = $this->withHttpHeaders($response, $outputName, $attachment);
+        $response = $this->withZipHeaders($response, $outputName, $attachment);
 
         $response = $response->withBody($this->streamFactory->createStreamFromFile($filename));
 
@@ -67,7 +67,7 @@ final class ZipResponder
         string $outputName,
         bool $attachment = true
     ): ResponseInterface {
-        $response = $this->withHttpHeaders($response, $outputName, $attachment);
+        $response = $this->withZipHeaders($response, $outputName, $attachment);
 
         $stream = fopen('php://temp', 'r+');
 
@@ -98,7 +98,7 @@ final class ZipResponder
         string $outputName,
         bool $attachment = true
     ): ResponseInterface {
-        $response = $this->withHttpHeaders($response, $outputName, $attachment);
+        $response = $this->withZipHeaders($response, $outputName, $attachment);
 
         $psrStream = $this->streamFactory->createStreamFromResource($stream);
         $response = $response->withBody($psrStream);
@@ -115,7 +115,7 @@ final class ZipResponder
      *
      * @return ResponseInterface The response
      */
-    private function withHttpHeaders(
+    public function withZipHeaders(
         ResponseInterface $response,
         string $outputFilename,
         bool $attachment
