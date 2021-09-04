@@ -158,11 +158,11 @@ final class CallbackStream implements StreamInterface
     /**
      * Write data to the stream.
      *
-     * @param string $string the string that is to be written
+     * @param string $string The string that is to be written
      *
      * @throws \RuntimeException on failure
      *
-     * @return int returns the number of bytes written to the stream
+     * @return int Returns the number of bytes written to the stream
      */
     public function write($string)
     {
@@ -223,7 +223,7 @@ final class CallbackStream implements StreamInterface
      *
      * @see http://php.net/manual/en/function.stream-get-meta-data.php
      *
-     * @param string $key specific metadata to retrieve
+     * @param string $key The specific metadata to retrieve
      *
      * @return array|mixed|null Returns an associative array if no key is
      * provided. Returns a specific key value if a key is provided and the
