@@ -58,8 +58,6 @@ $zipResponder = new ZipResponder(new StreamFactory());
 Send ZIP file to browser, force direct download:
 
 ```php
-// ...
-
 return $zipResponder->withZipFile(new Response(), 'source.zip', 'output.zip');
 ```
 
