@@ -230,7 +230,7 @@ return $zipResponder->withZipString($response, $zipFile->outputAsString(), 'down
 
 ## Slim 4 Integration
 
-Insert a DI container definition for: `StreamFactoryInterface::class`.
+Create a DI container definition for: `StreamFactoryInterface::class` and `ZipResponder::class`
 
 A `nyholm/psr7` and PHP-DI example:
 
@@ -260,13 +260,20 @@ A `slim/psr7` and PHP-DI example:
 ```php
 <?php
 
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Slim\Psr7\Factory\StreamFactory;
+use Selective\Http\Zip\ZipResponder;
 
 return [
     // ...
+    
     StreamFactoryInterface::class => function () {
         return new StreamFactory();
+    },
+    
+    ZipResponder::class => function (ContainerInterface $container) {
+        return new ZipResponder($container->get(StreamFactoryInterface::class));
     },
 ];
 ```
