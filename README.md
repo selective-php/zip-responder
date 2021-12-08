@@ -63,12 +63,6 @@ Send ZIP file to browser, force direct download:
 return $zipResponder->withZipFile($response, 'source.zip', 'output.zip');
 ```
 
-In reality, it makes sense to use the response object of the action handler:
-
-```php
-return $zipResponder->withZipFile($response, 'source.zip', 'output.zip');
-```
-
 ### Sending a ZIP file from a string
 
 ```php
@@ -77,7 +71,7 @@ return $zipResponder->withZipString($response, file_get_contents('example.zip'),
 
 ### Sending a ZIP stream
 
-Send ZIP stream to browser, force direct download:
+Send ZIP stream to the browser, force direct download:
 
 ```php
 $stream = fopen('test.zip', 'r');
