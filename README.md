@@ -35,7 +35,7 @@ composer require selective/zip-responder
 
 ## Usage
 
-Creating a new responder instance using the `nyholm/psr7` Psr17Factory:
+Creating a new ZipResponder instance using the `nyholm/psr7` Psr17Factory:
 
 ```php
 use Selective\Http\Zip\ZipResponder;
@@ -44,7 +44,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 $zipResponder = new ZipResponder(new Psr17Factory());
 ```
 
-Creating a new responder instance using the `slim/psr7` StreamFactory:
+Creating a new ZipResponder instance using the `slim/psr7` StreamFactory:
 
 ```php
 use Selective\Http\Zip\ZipResponder;
@@ -53,12 +53,14 @@ use Slim\Psr7\Factory\StreamFactory;
 $zipResponder = new ZipResponder(new StreamFactory());
 ```
 
+
+
 ### Sending a ZIP file
 
 Send ZIP file to browser, force direct download:
 
 ```php
-return $zipResponder->withZipFile(new Response(), 'source.zip', 'output.zip');
+return $zipResponder->withZipFile($response, 'source.zip', 'output.zip');
 ```
 
 In reality, it makes sense to use the response object of the action handler:
@@ -228,9 +230,32 @@ return $zipResponder->withZipString($response, $zipFile->outputAsString(), 'down
 
 ## Slim 4 Integration
 
-Insert a DI container definition: `StreamFactoryInterface::class`
+Insert a DI container definition for: `StreamFactoryInterface::class`.
 
-A `slim/psr7` example:
+A `nyholm/psr7` and PHP-DI example:
+
+```php
+<?php
+
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Selective\Http\Zip\ZipResponder;
+
+return [
+    // ...
+
+    StreamFactoryInterface::class => function (ContainerInterface $container) {
+        return $container->get(Psr17Factory::class);
+    },
+
+    ZipResponder::class => function (ContainerInterface $container) {
+        return new ZipResponder($container->get(StreamFactoryInterface::class));
+    },
+];
+```
+
+A `slim/psr7` and PHP-DI example:
 
 ```php
 <?php
