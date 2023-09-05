@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 use PhpZip\ZipFile;
 use Selective\Http\Zip\Stream\CallbackStream;
 use Selective\Http\Zip\ZipResponder;
-use ZipArchive;
 use ZipStream\Option\Archive;
 use ZipStream\ZipStream;
 
@@ -116,8 +115,8 @@ class ZipResponderTest extends TestCase
     {
         $filename = __DIR__ . '/temp.zip';
 
-        $zip = new ZipArchive();
-        $zip->open($filename, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $zip = new \ZipArchive();
+        $zip->open($filename, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
         $zip->addFromString('test.txt', 'my content');
         $zip->close();
 

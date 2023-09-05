@@ -4,7 +4,6 @@ namespace Selective\Http\Zip;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use UnexpectedValueException;
 
 /**
  * A HTTP ZIP response provider.
@@ -57,7 +56,7 @@ final class ZipResponder
      * @param string $outputName The output name
      * @param bool $attachment The Content-Disposition header
      *
-     * @throws UnexpectedValueException
+     * @throws \UnexpectedValueException
      *
      * @return ResponseInterface The response
      */
@@ -72,7 +71,7 @@ final class ZipResponder
         $stream = fopen('php://temp', 'r+');
 
         if (!$stream) {
-            throw new UnexpectedValueException('Stream could not be created');
+            throw new \UnexpectedValueException('Stream could not be created');
         }
 
         fwrite($stream, $content);
