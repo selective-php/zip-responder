@@ -3,6 +3,7 @@
 namespace Selective\Http\Zip\Stream;
 
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 
 /**
  * Callback-based stream implementation.
@@ -78,7 +79,7 @@ final class CallbackStream implements StreamInterface
     /**
      * Returns the current position of the file read/write pointer.
      *
-     * @throws \RuntimeException on error
+     * @throws RuntimeException on error
      *
      * @return int Position of the file pointer
      */
@@ -119,7 +120,7 @@ final class CallbackStream implements StreamInterface
      *     offset bytes SEEK_CUR: Set position to current location plus offset
      *     SEEK_END: Set position to end-of-stream plus offset.
      *
-     * @throws \RuntimeException on failure
+     * @throws RuntimeException on failure
      *
      * @return void
      */
@@ -133,7 +134,7 @@ final class CallbackStream implements StreamInterface
      * If the stream is not seekable, this method will raise an exception;
      * otherwise, it will perform a seek(0).
      *
-     * @throws \RuntimeException on failure
+     * @throws RuntimeException on failure
      *
      * @return bool
      *
@@ -160,7 +161,7 @@ final class CallbackStream implements StreamInterface
      *
      * @param string $string The string that is to be written
      *
-     * @throws \RuntimeException on failure
+     * @throws RuntimeException on failure
      *
      * @return int Returns the number of bytes written to the stream
      */
@@ -185,7 +186,7 @@ final class CallbackStream implements StreamInterface
      * @param int $length Read up to $length bytes from the object and return them.
      *  Fewer than $length bytes may be returned if underlying stream call returns fewer bytes.
      *
-     * @throws \RuntimeException if an error occurs
+     * @throws RuntimeException if an error occurs
      *
      * @return string returns the data read from the stream, or an empty string if no bytes are available
      */
@@ -206,7 +207,7 @@ final class CallbackStream implements StreamInterface
     /**
      * Returns the remaining contents in a string.
      *
-     * @throws \RuntimeException if unable to read or an error occurs while reading
+     * @throws RuntimeException if unable to read or an error occurs while reading
      *
      * @return string
      */
