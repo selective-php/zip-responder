@@ -134,21 +134,28 @@ composer require maennchen/zipstream-php
 Creating and sending a ZIP file (only in-memory) to the browser:
 
 ```php
-use ZipStream\Option\Archive;
 use ZipStream\ZipStream;
 
 // ...
 
 // Create ZIP file, only in-memory
-$archive = new Archive();
-$archive->setOutputStream(fopen('php://memory', 'r+'));
+$stream = fopen('php://memory', 'w+b');
 
-// Add files to ZIP file
-$zip = new ZipStream(null, $archive);
-$zip->addFile('test.txt', 'my file content');
+$zip = new ZipStream(
+    outputStream: $stream,
+    // disable output of HTTP headers
+    sendHttpHeaders: false,
+);
+
+// create a file named 'hello.txt'
+$zip->addFile(
+    fileName: 'hello.txt',
+    data: 'This is the contents of hello.txt',
+);
+
 $zip->finish();
 
-$response = $zipResponder->withZipStream($response, $archive->getOutputStream(), 'download.zip');
+$response = $zipResponder->withZipStream($response, $stream, 'download.zip');
 ```
 
 Sending a zipstream on the fly:
