@@ -158,20 +158,19 @@ $zip->finish();
 $response = $zipResponder->withZipStream($response, $stream, 'download.zip');
 ```
 
-Sending a zipstream on the fly:
+Sending a ZIP-stream on the fly:
 
 ```php
 use Selective\Http\Zip\Stream\CallbackStream;
-use ZipStream\Option\Archive;
 use ZipStream\ZipStream;
 //...
 
 $callbackStream = new CallbackStream(function () {
-    $archive = new Archive();
-
     // Flush ZIP file directly to output stream (php://output)
-    $archive->setFlushOutput(true);
-    $zip = new ZipStream(null, $archive);
+    $zip = new ZipStream(
+        flushOutput: true,
+        sendHttpHeaders: false,
+    );
 
     // Add files to ZIP file and stream it directly
     $zip->addFile('test.txt', 'my file content');
